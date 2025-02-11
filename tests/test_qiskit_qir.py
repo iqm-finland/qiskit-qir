@@ -17,6 +17,7 @@ from test_circuits.basic_gates import (
     single_op_tests,
     adj_op_tests,
     rotation_tests,
+    r_test,
     double_op_tests,
     triple_op_tests,
     measurement_tests,
@@ -116,6 +117,17 @@ def test_rotation_gates(circuit_name, request):
     func = test_utils.get_entry_point_body(generated_qir)
     assert func[0] == test_utils.initialize_call_string()
     assert func[1] == test_utils.rotation_call_string(qir_op, 0.5, 0)
+    assert func[2] == test_utils.return_string()
+    assert len(func) == 3
+
+@pytest.mark.parametrize("circuit_name", r_test)
+def test_r_gate(circuit_name, request):
+    qir_op, circuit = request.getfixturevalue(circuit_name)
+    generated_qir = str(to_qir_module(circuit)[0]).splitlines()
+    test_utils.check_attributes(generated_qir, 1, 0)
+    func = test_utils.get_entry_point_body(generated_qir)
+    assert func[0] == test_utils.initialize_call_string()
+    assert func[1] == test_utils.multiparameter_rotation_call_string(qir_op, 0.5, 0.5, 0)
     assert func[2] == test_utils.return_string()
     assert len(func) == 3
 

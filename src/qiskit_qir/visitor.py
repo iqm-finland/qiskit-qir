@@ -88,7 +88,7 @@ _QUANTUM_INSTRUCTIONS = [
     "z",
 ]
 
-_NOOP_INSTRUCTIONS = ["delay"]
+_NOOP_INSTRUCTIONS = ["delay", "r"]
 
 _SUPPORTED_INSTRUCTIONS = _QUANTUM_INSTRUCTIONS + _NOOP_INSTRUCTIONS
 
@@ -330,6 +330,8 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
                 qis.h(self._builder, *qubits)
             elif "reset" == instruction.name:
                 qis.reset(self._builder, qubits[0])
+            elif "r" == instruction.name:
+                qis.r(self._builder, *instruction.params, *qubits)
             elif "rx" == instruction.name:
                 qis.rx(self._builder, *instruction.params, *qubits)
             elif "ry" == instruction.name:
