@@ -99,7 +99,7 @@ def _generate_r_fixture(gate: str):
         circuit = QuantumCircuit(1)
         getattr(circuit, gate)(0.5, 0.5, 0)
         return _map_gate_name(gate), circuit
-    return test_fixture()
+    return test_fixture
 
 name = _fixture_name(general_r_gate["r"])
 locals()[name] = _generate_r_fixture(name)
