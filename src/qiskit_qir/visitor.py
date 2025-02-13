@@ -75,6 +75,7 @@ _QUANTUM_INSTRUCTIONS = [
     "m",
     "measure",
     "reset",
+    "r",
     "rx",
     "ry",
     "rz",
@@ -88,7 +89,7 @@ _QUANTUM_INSTRUCTIONS = [
     "z",
 ]
 
-_NOOP_INSTRUCTIONS = ["delay", "r"]
+_NOOP_INSTRUCTIONS = ["delay"]
 
 _SUPPORTED_INSTRUCTIONS = _QUANTUM_INSTRUCTIONS + _NOOP_INSTRUCTIONS
 
