@@ -74,6 +74,7 @@ _QUANTUM_INSTRUCTIONS = [
     "id",
     "m",
     "measure",
+    "r",
     "reset",
     "rx",
     "ry",
@@ -328,6 +329,8 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
                 qis.cz(self._builder, *qubits)
             elif "h" == instruction.name:
                 qis.h(self._builder, *qubits)
+            elif "r" == instruction.name:
+                qis.r(self._builder, *instruction.params, *qubits)
             elif "reset" == instruction.name:
                 qis.reset(self._builder, qubits[0])
             elif "rx" == instruction.name:
