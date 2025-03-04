@@ -40,6 +40,9 @@ def double_op_call_string(name: str, qb1: int, qb2: int) -> str:
 def rotation_call_string(name: str, theta: float, qb: int) -> str:
     return f"call void @__quantum__qis__{name}__body(double {theta:#e}, {_qubit_string(qb)})"
 
+def multiparameter_rotation_call_string(name: str, theta: float, phi: float, qb: int) -> str:
+    return f"call void @__quantum__qis__{name}__body(double {theta:#e}, double {phi:#e}, {_qubit_string(qb)})"
+
 
 def measure_call_string(name: str, res: str, qb: int) -> str:
     return f"call void @__quantum__qis__{name}__body({_qubit_string(qb)}, {_result_string(res)})"

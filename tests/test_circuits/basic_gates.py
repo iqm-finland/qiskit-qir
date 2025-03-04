@@ -27,7 +27,7 @@ _measurements = {"measure": "mz"}
 
 _rotations = {"rx": "rx", "ry": "ry", "rz": "rz"}
 
-general_r_gate = {"r": "r"}
+_general_r_gate = {"r": "r"}
 
 _two_qubit_gates = {"cx": "cnot", "cz": "cz", "swap": "swap"}
 
@@ -47,6 +47,8 @@ def _map_gate_name(gate: str) -> str:
         return _measurements[gate]
     elif gate in _rotations:
         return _rotations[gate]
+    elif gate in _general_r_gate:
+        return _general_r_gate[gate]
     elif gate in _two_qubit_gates:
         return _two_qubit_gates[gate]
     elif gate in _three_qubit_gates:
@@ -101,8 +103,9 @@ def _generate_r_fixture(gate: str):
         return _map_gate_name(gate), circuit
     return test_fixture
 
-name = _fixture_name(general_r_gate["r"])
-locals()[name] = _generate_r_fixture(name)
+for gate in _general_r_gate.keys():
+    name = _fixture_name(gate)
+    locals()[name] = _generate_r_fixture(gate)
 
 
 def _generate_two_qubit_fixture(gate: str):
@@ -155,7 +158,7 @@ for gate in _measurements.keys():
 single_op_tests = [_fixture_name(s) for s in _one_qubit_gates.keys()]
 adj_op_tests = [_fixture_name(s) for s in _adj_gates.keys()]
 rotation_tests = [_fixture_name(s) for s in _rotations.keys()]
-r_test = [_fixture_name(general_r_gate["r"])]
+r_test = [_fixture_name(_general_r_gate["r"])]
 double_op_tests = [_fixture_name(s) for s in _two_qubit_gates.keys()]
 triple_op_tests = [_fixture_name(s) for s in _three_qubit_gates.keys()]
 measurement_tests = [_fixture_name(s) for s in _measurements.keys()]
