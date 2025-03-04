@@ -63,7 +63,7 @@ jobs:
           sudo apt-get install graphviz
       - name: Build docs
         run: |
-          ./docbuild
+          sphinx-build -b html docs/ build/sphinx/html
           touch build/sphinx/html/.nojekyll  # allow underscores in URL path
           # remove unnecessary build files
           sudo rm -rf build/sphinx/html/.doctrees
