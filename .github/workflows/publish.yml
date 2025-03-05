@@ -61,6 +61,7 @@ jobs:
         run: |
           uv pip install --constraint requirements_dev.txt --editable .[cicd,docs]
           sudo apt-get install graphviz
+          sudo apt-get install sphinx
       - name: Build docs
         run: |
           sphinx-build -b html docs/ build/sphinx/html
