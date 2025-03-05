@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.8.0
+- Fixing documentation workflow in `publish.yml`
+
 ## Version 0.7.0
 
 - Including `sphinx` as a requirement in `setup.cfg` to build docs.
