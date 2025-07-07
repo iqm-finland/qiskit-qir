@@ -38,7 +38,8 @@ def test_single_clbit_variations_falsy(value: bool) -> None:
     circuit.add_register(cr)
     circuit.measure(0, 0)
     bit: Clbit = cr[0]
-    circuit.measure(1, 1).c_if(bit, value)
+    with circuit.if_test((bit, value)):
+        circuit.measure(1,1)
 
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
     compare_reference_ir(generated_bitcode, "test_single_clbit_variations_falsy")
@@ -51,8 +52,8 @@ def test_single_clbit_variations_truthy(value: bool) -> None:
     circuit.add_register(cr)
     circuit.measure(0, 0)
     bit: Clbit = cr[0]
-    circuit.measure(1, 1).c_if(bit, value)
-
+    with circuit.if_test((bit, value)):
+        circuit.measure(1,1)
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
     compare_reference_ir(generated_bitcode, "test_single_clbit_variations_truthy")
 
@@ -63,8 +64,8 @@ def test_single_register_index_variations_truthy(value: bool) -> None:
     cr = ClassicalRegister(2, "creg")
     circuit.add_register(cr)
     circuit.measure(0, 0)
-    circuit.measure(1, 1).c_if(0, value)
-
+    with circuit.if_test((0, value)):
+        circuit.measure(1,1)
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
 
     compare_reference_ir(
@@ -78,8 +79,8 @@ def test_single_register_index_variations_falsy(value: bool) -> None:
     cr = ClassicalRegister(2, "creg")
     circuit.add_register(cr)
     circuit.measure(0, 0)
-    circuit.measure(1, 1).c_if(0, value)
-
+    with circuit.if_test((0, value)):
+        circuit.measure(1,1)
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
 
     compare_reference_ir(
@@ -93,8 +94,8 @@ def test_single_register_variations_truthy(value: bool) -> None:
     cr = ClassicalRegister(2, "creg")
     circuit.add_register(cr)
     circuit.measure(0, 0)
-    circuit.measure(1, 1).c_if(cr, value)
-
+    with circuit.if_test((cr, value)):
+        circuit.measure(1,1)
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
 
     compare_reference_ir(generated_bitcode, "test_single_register_variations_truthy")
@@ -106,8 +107,8 @@ def test_single_register_variations_falsy(value: bool) -> None:
     cr = ClassicalRegister(2, "creg")
     circuit.add_register(cr)
     circuit.measure(0, 0)
-    circuit.measure(1, 1).c_if(cr, value)
-
+    with circuit.if_test((cr, value)):
+        circuit.measure(1,1)
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
 
     compare_reference_ir(generated_bitcode, "test_single_register_variations_falsy")
@@ -122,8 +123,8 @@ def test_single_clbit_invalid_variations(value: int) -> None:
     bit: Clbit = cr[0]
 
     with pytest.raises(CircuitError) as exc_info:
-        _ = circuit.measure(1, 1).c_if(bit, value)
-
+        with circuit.if_test((bit, value)):
+            _ = circuit.measure(1, 1)
     assert exc_info is not None
 
 
@@ -139,8 +140,8 @@ def test_single_register_index_invalid_variations(value: int) -> None:
     circuit.measure(0, 0)
 
     with pytest.raises(CircuitError) as exc_info:
-        _ = circuit.measure(1, 1).c_if(0, value)
-
+        with circuit.if_test((0, value)):
+            _ = circuit.measure(1, 1)
     assert exc_info is not None
 
 
@@ -152,8 +153,8 @@ def test_single_register_invalid_variations(value: int) -> None:
     circuit.measure(0, 0)
 
     with pytest.raises(CircuitError) as exc_info:
-        _ = circuit.measure(1, 1).c_if(cr, value)
-
+        with circuit.if_test((cr, value)):
+            _ = circuit.measure(1, 1)
     assert exc_info is not None
 
 
@@ -189,7 +190,8 @@ def test_two_bit_register_variations(matrix) -> None:
 
     circuit.measure(0, 0)
     circuit.measure(1, 1)
-    circuit.measure(2, 2).c_if(cr, value)
+    with circuit.if_test(cr, value):
+        circuit.measure(2,2)
 
     generated_bitcode = to_qir_module(circuit, record_output=False)[0].bitcode
 
@@ -213,6 +215,6 @@ def test_two_bit_register_invalid_variations(value: int) -> None:
     circuit.measure(1, 1)
 
     with pytest.raises(CircuitError) as exc_info:
-        _ = circuit.measure(2, 2).c_if(cr, value)
-
+        with circuit.if_test((cr, value)):
+            _ = circuit.measure(2, 2)
     assert exc_info is not None

@@ -28,8 +28,10 @@ def teleport() -> QuantumCircuit:
     circuit.h(0)
     circuit.measure(0, 0)
     circuit.measure(1, 1)
-    circuit.x(2).c_if(cr, int("10", 2))
-    circuit.z(2).c_if(cr, int("01", 2))
+    with circuit.if_test((cr, int("10", 2))):
+        circuit.x(2)
+    with circuit.if_test((cr, int("01", 2))):
+        circuit.z(2)
     return circuit
 
 
@@ -67,7 +69,8 @@ def use_another_after_measure_and_condition():
     circuit.h(1)
     circuit.cx(1, 2)
     circuit.measure(1, 1)
-    circuit.x(2).c_if(cr, int("10", 2))
+    with circuit.if_test(cr, int("10", 2)):
+        circuit.x(2)
 
     return circuit
 
@@ -80,7 +83,8 @@ def use_conditional_branch_on_single_register_true_value():
     circuit.add_register(cr)
     circuit.x(0)
     circuit.measure(0, 0)
-    circuit.x(1).c_if(cr[2], 1)
+    with circuit.if_test(cr[2], 1):
+        circuit.x(1)
     circuit.measure(0, 1)
 
     return circuit
@@ -94,7 +98,8 @@ def use_conditional_branch_on_single_register_false_value():
     circuit.add_register(cr)
     circuit.x(0)
     circuit.measure(0, 0)
-    circuit.x(1).c_if(cr[2], 0)
+    with circuit.if_test(cr[2], 0):
+        circuit.x(1)
     circuit.measure(0, 1)
 
     return circuit
@@ -106,7 +111,8 @@ def conditional_branch_on_bit():
     circuit = QuantumCircuit(qr, cr, name="conditional_branch_on_bit")
     circuit.x(0)
     circuit.measure(0, 0)
-    circuit.x(1).c_if(cr[0], 1)
+    with circuit.if_test(cr[0], 1):
+        circuit.x(1)
     circuit.measure(1, 1)
     return circuit
 
