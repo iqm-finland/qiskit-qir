@@ -8,7 +8,6 @@ from abc import ABCMeta, abstractmethod
 from qiskit import ClassicalRegister, QuantumRegister
 from qiskit.circuit import Qubit, Clbit
 from qiskit.circuit.instruction import Instruction
-from qiskit.circuit.bit import Bit
 import pyqir.qis as qis
 import pyqir.rt as rt
 import pyqir
@@ -211,8 +210,8 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
     def visit_instruction(
         self,
         instruction: Instruction,
-        qargs: List[Bit],
-        cargs: List[Bit],
+        qargs: List[Qubit],
+        cargs: List[Clbit],
         skip_condition=False,
     ):
         qlabels = [self._qubit_labels.get(bit) for bit in qargs]
