@@ -5,7 +5,7 @@
 from typing import List, Optional, Union
 from pyqir import Module, Context
 from qiskit import ClassicalRegister, QuantumRegister
-from qiskit.circuit.bit import Bit
+from qiskit.circuit import Qubit, Clbit
 from qiskit.circuit.quantumcircuit import QuantumCircuit, Instruction
 from abc import ABCMeta, abstractmethod
 
@@ -29,7 +29,7 @@ class _Register(_QuantumCircuitElement):
 
 
 class _Instruction(_QuantumCircuitElement):
-    def __init__(self, instruction: Instruction, qargs: List[Bit], cargs: List[Bit]):
+    def __init__(self, instruction: Instruction, qargs: List[Qubit], cargs: List[Clbit]):
         self._instruction: Instruction = instruction
         self._qargs = qargs
         self._cargs = cargs
