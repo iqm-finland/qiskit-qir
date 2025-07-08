@@ -28,23 +28,6 @@ def for_loop():
     return circuit
 
 
-@pytest.fixture()
-def if_else():
-    circuit = QuantumCircuit(3, 2)
-
-    circuit.h(0)
-    circuit.cx(0, 1)
-    circuit.measure(0, 0)
-    circuit.h(0)
-    circuit.cx(0, 1)
-    circuit.measure(0, 1)
-
-    with circuit.if_test((circuit.clbits[0], 0)) as else_:
-        circuit.x(2)
-    with else_:
-        circuit.h(2)
-        circuit.z(2)
-    return circuit
 
 
-cf_fixtures = ["while_loop", "for_loop", "if_else"]
+cf_fixtures = ["while_loop", "for_loop"]

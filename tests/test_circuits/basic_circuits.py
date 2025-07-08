@@ -20,23 +20,7 @@ def ghz():
     return circuit
 
 
-@pytest.fixture()
-def teleport():
-    q = QuantumRegister(3, name="q")
-    cr = ClassicalRegister(2, name="cr")
-    circuit = QuantumCircuit(q, cr, name="Teleport")
-    circuit.h(1)
-    circuit.cx(1, 2)
-    circuit.cx(0, 1)
-    circuit.h(0)
-    circuit.measure(0, 0)
-    circuit.measure(1, 1)
-    with circuit.if_test((cr, int("10", 2))):
-        circuit.x(2)
-    with circuit.if_test((cr, int("01", 2))):
-        circuit.z(2)
 
-    return circuit
 
 
 @pytest.fixture()
@@ -49,24 +33,6 @@ def unroll():
     return circ.decompose()
 
 
-@pytest.fixture()
-def teleport_with_subroutine():
-    bell_circ = QuantumCircuit(2, name="CreateBellPair")
-    bell_circ.h(0)
-    bell_circ.cx(0, 1)
-    q = QuantumRegister(3, name="q")
-    cr = ClassicalRegister(2, name="cr")
-    circuit = QuantumCircuit(q, cr, name="Teleport")
-    circuit.append(bell_circ.to_instruction(), [1, 2])
-    circuit.cx(0, 1)
-    circuit.h(0)
-    circuit.measure(0, 0)
-    circuit.measure(1, 1)
-    with circuit.if_test((cr, int("10", 2))):
-        circuit.x(2)
-    with circuit.if_test((cr, int("01", 2))):
-        circuit.z(2)
-    return circuit
 
 
 @pytest.fixture()

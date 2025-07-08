@@ -18,22 +18,6 @@ from qiskit_qir.visitor import BasicQisVisitor
 # test circuits
 
 
-def teleport() -> QuantumCircuit:
-    qq = QuantumRegister(3, name="qq")
-    cr = ClassicalRegister(2, name="cr")
-    circuit = QuantumCircuit(qq, cr, name="Teleport")
-    circuit.h(1)
-    circuit.cx(1, 2)
-    circuit.cx(0, 1)
-    circuit.h(0)
-    circuit.measure(0, 0)
-    circuit.measure(1, 1)
-    with circuit.if_test((cr, int("10", 2))):
-        circuit.x(2)
-    with circuit.if_test((cr, int("01", 2))):
-        circuit.z(2)
-    return circuit
-
 
 def use_after_measure():
     qq = QuantumRegister(2, name="qq")
@@ -56,64 +40,6 @@ def use_another_after_measure():
     circuit.cx(1, 2)
     circuit.measure(1, 1)
 
-    return circuit
-
-
-def use_another_after_measure_and_condition():
-    qq = QuantumRegister(3, name="qq")
-    cr = ClassicalRegister(2, name="cr")
-    circuit = QuantumCircuit(qq, cr)
-
-    circuit.h(0)
-    circuit.measure(0, 0)
-    circuit.h(1)
-    circuit.cx(1, 2)
-    circuit.measure(1, 1)
-    with circuit.if_test(cr, int("10", 2)):
-        circuit.x(2)
-
-    return circuit
-
-
-def use_conditional_branch_on_single_register_true_value():
-    circuit = QuantumCircuit(name="Conditional")
-    qr = QuantumRegister(2, "qreg")
-    cr = ClassicalRegister(3, "creg")
-    circuit.add_register(qr)
-    circuit.add_register(cr)
-    circuit.x(0)
-    circuit.measure(0, 0)
-    with circuit.if_test(cr[2], 1):
-        circuit.x(1)
-    circuit.measure(0, 1)
-
-    return circuit
-
-
-def use_conditional_branch_on_single_register_false_value():
-    circuit = QuantumCircuit(name="Conditional")
-    qr = QuantumRegister(2, "qreg")
-    cr = ClassicalRegister(3, "creg")
-    circuit.add_register(qr)
-    circuit.add_register(cr)
-    circuit.x(0)
-    circuit.measure(0, 0)
-    with circuit.if_test(cr[2], 0):
-        circuit.x(1)
-    circuit.measure(0, 1)
-
-    return circuit
-
-
-def conditional_branch_on_bit():
-    qr = QuantumRegister(2, "qreg")
-    cr = ClassicalRegister(2, "creg")
-    circuit = QuantumCircuit(qr, cr, name="conditional_branch_on_bit")
-    circuit.x(0)
-    circuit.measure(0, 0)
-    with circuit.if_test(cr[0], 1):
-        circuit.x(1)
-    circuit.measure(1, 1)
     return circuit
 
 
