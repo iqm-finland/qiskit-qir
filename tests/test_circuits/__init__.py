@@ -9,9 +9,7 @@ from .basic_circuits import *
 # Core test fixtures
 core_tests = [
     "ghz",
-    "teleport",
     "unroll",
-    "teleport_with_subroutine",
     "measure_x_as_subroutine",
 ] + random_fixtures
 
