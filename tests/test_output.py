@@ -2,10 +2,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from qiskit_qir.translate import to_qir_module
+import test_utils
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-import test_utils
+from qiskit_qir.translate import to_qir_module
 
 
 def test_single_array():

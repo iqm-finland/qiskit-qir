@@ -3,7 +3,6 @@
 # Licensed under the MIT License.
 ##
 import pytest
-
 from qiskit import QuantumCircuit
 
 # All of the following dictionaries map from the names of methods on Qiskit QuantumCircuit objects
@@ -95,13 +94,16 @@ for gate in _rotations.keys():
     name = _fixture_name(gate)
     locals()[name] = _generate_rotation_fixture(gate)
 
+
 def _generate_r_fixture(gate: str):
     @pytest.fixture()
     def test_fixture():
         circuit = QuantumCircuit(1)
         getattr(circuit, gate)(0.5, 0.5, 0)
         return _map_gate_name(gate), circuit
+
     return test_fixture
+
 
 for gate in _general_r_gate.keys():
     name = _fixture_name(gate)

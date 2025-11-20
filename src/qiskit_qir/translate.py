@@ -2,11 +2,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from qiskit_qir.visitor import BasicQisVisitor
-from qiskit.circuit.quantumcircuit import QuantumCircuit
 from typing import List, Tuple, Union
+
 from pyqir import Context, Module, qir_module
+from qiskit.circuit.quantumcircuit import QuantumCircuit
+
 from qiskit_qir.elements import QiskitModule
+from qiskit_qir.visitor import BasicQisVisitor
 
 
 def to_qir_module(

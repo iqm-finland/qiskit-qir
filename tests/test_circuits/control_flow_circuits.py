@@ -3,7 +3,6 @@
 # Licensed under the MIT License.
 ##
 import pytest
-
 from qiskit import QuantumCircuit
 
 
@@ -26,8 +25,6 @@ def for_loop():
         # Qiskit doesn't (yet) support cnot(3, i)
         circuit.cx(3, 0)
     return circuit
-
-
 
 
 cf_fixtures = ["while_loop", "for_loop"]

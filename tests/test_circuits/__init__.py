@@ -3,8 +3,8 @@
 # Licensed under the MIT License.
 ##
 
-from .random import *
 from .basic_circuits import *
+from .random import *
 
 # Core test fixtures
 core_tests = [

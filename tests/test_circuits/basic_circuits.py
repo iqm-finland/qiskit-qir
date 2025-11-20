@@ -3,8 +3,8 @@
 # Licensed under the MIT License.
 ##
 from builtins import format
-import pytest
 
+import pytest
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
 
@@ -20,9 +20,6 @@ def ghz():
     return circuit
 
 
-
-
-
 @pytest.fixture()
 def unroll():
     circ = QuantumCircuit(3)
@@ -31,8 +28,6 @@ def unroll():
     circ.id(2)
 
     return circ.decompose()
-
-
 
 
 @pytest.fixture()

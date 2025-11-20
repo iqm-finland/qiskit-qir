@@ -2,14 +2,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from qiskit_qir.translate import to_qir_module
-from qiskit import QuantumCircuit, ClassicalRegister
-from qiskit.circuit import Parameter
-import numpy as np
-from pyqir import Context, Module, is_entry_point
 from typing import List
-import test_utils
+
+import numpy as np
 import pytest
+import test_utils
+from pyqir import Context, Module, is_entry_point
+from qiskit import ClassicalRegister, QuantumCircuit
+from qiskit.circuit import Parameter
+
+from qiskit_qir.translate import to_qir_module
 
 
 def get_parameterized_circuit(num_qubits: int, num_params: int) -> List[QuantumCircuit]:
