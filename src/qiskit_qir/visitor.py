@@ -199,7 +199,10 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
                 f"Composite instruction {instruction.name} called with the wrong number of classical bits; \
 {subcircuit.num_clbits} expected, {len(cargs)} provided"
             )
-        for inst, i_qargs, i_cargs in subcircuit.data:
+        for op in subcircuit.data:
+            inst = op.operation
+            i_qargs = op.qubits
+            i_cargs = op.clbits
             mapped_qbits = [qargs[subcircuit.qubits.index(i)] for i in i_qargs]
             mapped_clbits = [cargs[subcircuit.clbits.index(i)] for i in i_cargs]
             _log.debug(
@@ -219,77 +222,80 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
         qubits = [pyqir.qubit(self._module.context, n) for n in qlabels]
         results = [pyqir.result(self._module.context, n) for n in clabels]
 
-        if (
-            instruction.condition is not None
-        ) and not self._capabilities & Capability.CONDITIONAL_BRANCHING_ON_RESULT:
-            raise ConditionalBranchingOnResultError(
-                self._qiskitModule.circuit, instruction, qargs, cargs, self._profile
-            )
-
-        labels = ", ".join([str(l) for l in qlabels + clabels])
-        if instruction.condition is None or skip_condition:
-            _log.debug(f"Visiting instruction '{instruction.name}' ({labels})")
-
-        if instruction.condition is not None and skip_condition is False:
-            _log.debug(
-                f"Visiting condition for instruction '{instruction.name}' ({labels})"
-            )
-
-            if isinstance(instruction.condition[0], Clbit):
-                bit_label = self._clbit_labels.get(instruction.condition[0])
-                conditions = [pyqir.result(self._module.context, bit_label)]
-            else:
-                conditions = [
-                    pyqir.result(self._module.context, self._clbit_labels.get(bit))
-                    for bit in instruction.condition[0]
-                ]
-
-            # Convert value into a bitstring of the same length as classical register
-            # condition should be a
-            # - tuple (ClassicalRegister, int)
-            # - tuple (Clbit, bool)
-            # - tuple (Clbit, int)
-            if isinstance(instruction.condition[0], Clbit):
-                bit: Clbit = instruction.condition[0]
-                value: Union[int, bool] = instruction.condition[1]
-                if value:
-                    values = "1"
-                else:
-                    values = "0"
-            else:
-                register: ClassicalRegister = instruction.condition[0]
-                value: int = instruction.condition[1]
-                values = format(value, f"0{register.size}b")
-
-            # Add branches recursively for each bit in the bitstring
-            def __visit():
-                self.visit_instruction(instruction, qargs, cargs, skip_condition=True)
-
-            def _branch(conditions_values):
-                try:
-                    cond, val = next(conditions_values)
-
-                    def __branch():
-                        qis.if_result(
-                            self._builder,
-                            cond,
-                            one=_branch(conditions_values) if val == "1" else None,
-                            zero=_branch(conditions_values) if val == "0" else None,
-                        )
-
-                except StopIteration:
-                    return __visit
-                else:
-                    return __branch
-
-            if len(conditions) < len(values):
-                raise ValueError(
-                    f"Value {value} is larger than register width {len(conditions)}."
+        if hasattr(instruction, "condition"):
+            if instruction.name == "if_else":
+                raise NotImplementedError("Deal with if_else gates")
+            if (
+                instruction.condition is not None
+            ) and not self._capabilities & Capability.CONDITIONAL_BRANCHING_ON_RESULT:
+                raise ConditionalBranchingOnResultError(
+                    self._qiskitModule.circuit, instruction, qargs, cargs, self._profile
                 )
 
-            # qiskit has the most significant bit on the right, so we
-            # must reverse the bit array for comparisons.
-            _branch(zip(conditions, values[::-1]))()
+            labels = ", ".join([str(l) for l in qlabels + clabels])
+            if instruction.condition is None or skip_condition:
+                _log.debug(f"Visiting instruction '{instruction.name}' ({labels})")
+
+            if instruction.condition is not None and skip_condition is False:
+                _log.debug(
+                    f"Visiting condition for instruction '{instruction.name}' ({labels})"
+                )
+
+                if isinstance(instruction.condition[0], Clbit):
+                    bit_label = self._clbit_labels.get(instruction.condition[0])
+                    conditions = [pyqir.result(self._module.context, bit_label)]
+                else:
+                    conditions = [
+                        pyqir.result(self._module.context, self._clbit_labels.get(bit))
+                        for bit in instruction.condition[0]
+                    ]
+
+                # Convert value into a bitstring of the same length as classical register
+                # condition should be a
+                # - tuple (ClassicalRegister, int)
+                # - tuple (Clbit, bool)
+                # - tuple (Clbit, int)
+                if isinstance(instruction.condition[0], Clbit):
+                    bit: Clbit = instruction.condition[0]
+                    value: Union[int, bool] = instruction.condition[1]
+                    if value:
+                        values = "1"
+                    else:
+                        values = "0"
+                else:
+                    register: ClassicalRegister = instruction.condition[0]
+                    value: int = instruction.condition[1]
+                    values = format(value, f"0{register.size}b")
+
+                # Add branches recursively for each bit in the bitstring
+                def __visit():
+                    self.visit_instruction(instruction, qargs, cargs, skip_condition=True)
+
+                def _branch(conditions_values):
+                    try:
+                        cond, val = next(conditions_values)
+
+                        def __branch():
+                            qis.if_result(
+                                self._builder,
+                                cond,
+                                one=_branch(conditions_values) if val == "1" else None,
+                                zero=_branch(conditions_values) if val == "0" else None,
+                            )
+
+                    except StopIteration:
+                        return __visit
+                    else:
+                        return __branch
+
+                if len(conditions) < len(values):
+                    raise ValueError(
+                        f"Value {value} is larger than register width {len(conditions)}."
+                    )
+
+                # qiskit has the most significant bit on the right, so we
+                # must reverse the bit array for comparisons.
+                _branch(zip(conditions, values[::-1]))()
         elif (
             "measure" == instruction.name
             or "m" == instruction.name
