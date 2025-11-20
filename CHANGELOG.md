@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.9.0
+- Update package to support `qiskit~=2.0`.
+- Remove support for conditionally controlled gates as they are not part of the [QIR Base profile](https://github.com/qir-alliance/qir-spec/blob/main/specification/profiles/Base_Profile.md).
+
 ## Version 0.8.0
 - Fixing documentation workflow in `publish.yml`
 
