@@ -2,15 +2,14 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from io import UnsupportedOperation
 import logging
 from abc import ABCMeta, abstractmethod
-from qiskit import ClassicalRegister, QuantumRegister
-from qiskit.circuit import Qubit, Clbit
-from qiskit.circuit.instruction import Instruction
+from io import UnsupportedOperation
+from typing import List, Union
+
+import pyqir
 import pyqir.qis as qis
 import pyqir.rt as rt
-import pyqir
 from pyqir import (
     BasicBlock,
     Builder,
@@ -25,7 +24,9 @@ from pyqir import (
     entry_point,
     qubit_id,
 )
-from typing import List, Union
+from qiskit import ClassicalRegister, QuantumRegister
+from qiskit.circuit import Clbit, Qubit
+from qiskit.circuit.instruction import Instruction
 
 from qiskit_qir.capability import (
     Capability,
@@ -42,55 +43,31 @@ _log = logging.getLogger(name=__name__)
 # this list which contains the instructions that we can process.
 # This following three variables can be removed in a future
 # release after dependency version restrictions have been applied.
-SUPPORTED_INSTRUCTIONS = [
-    "barrier",
-    "delay",
-    "measure",
-    "m",
-    "cx",
-    "cz",
-    "h",
-    "reset",
-    "rx",
-    "ry",
-    "rz",
-    "s",
-    "sdg",
-    "t",
-    "tdg",
-    "x",
-    "y",
-    "z",
-    "id",
-]
-
-_QUANTUM_INSTRUCTIONS = [
-    "barrier",
-    "ccx",
-    "cx",
-    "cz",
-    "h",
-    "id",
-    "m",
-    "measure",
-    "r",
-    "reset",
-    "rx",
-    "ry",
-    "rz",
-    "s",
-    "sdg",
-    "swap",
-    "t",
-    "tdg",
-    "x",
-    "y",
-    "z",
-]
-
+_NON_BASIS_GATES = ["m", "barrier"]  # For Qiskit transpiler compatibility
 _NOOP_INSTRUCTIONS = ["delay"]
-
+_BASE_INSTRUCTIONS = [
+    "measure",
+    "reset",
+    "cx",
+    "cz",
+    "h",
+    "rx",
+    "ry",
+    "rz",
+    "r",
+    "s",
+    "sdg",
+    "t",
+    "tdg",
+    "x",
+    "y",
+    "z",
+    "id",
+]
+_COMPOSITE_INSTRUCTIONS = ["ccx", "swap"]
+_QUANTUM_INSTRUCTIONS = _COMPOSITE_INSTRUCTIONS + _BASE_INSTRUCTIONS + _NON_BASIS_GATES
 _SUPPORTED_INSTRUCTIONS = _QUANTUM_INSTRUCTIONS + _NOOP_INSTRUCTIONS
+SUPPORTED_INSTRUCTIONS = _BASE_INSTRUCTIONS + _NON_BASIS_GATES + _NOOP_INSTRUCTIONS
 
 
 class QuantumCircuitElementVisitor(metaclass=ABCMeta):
@@ -221,81 +198,76 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
         clabels = [self._clbit_labels.get(bit) for bit in cargs]
         qubits = [pyqir.qubit(self._module.context, n) for n in qlabels]
         results = [pyqir.result(self._module.context, n) for n in clabels]
-
-        if hasattr(instruction, "condition"):
+        labels = ", ".join([str(l) for l in qlabels + clabels])
+        _log.debug(f"Visiting instruction '{instruction.name}' ({labels})")
+        if (
+            hasattr(instruction, "condition")
+            and instruction.condition is not None
+            and not skip_condition
+        ):
+            _log.debug(f"\t Instruction has condition")
             if instruction.name == "if_else":
                 raise NotImplementedError("Deal with if_else gates")
-            if (
-                instruction.condition is not None
-            ) and not self._capabilities & Capability.CONDITIONAL_BRANCHING_ON_RESULT:
+            if not self._capabilities & Capability.CONDITIONAL_BRANCHING_ON_RESULT:
                 raise ConditionalBranchingOnResultError(
                     self._qiskitModule.circuit, instruction, qargs, cargs, self._profile
                 )
 
-            labels = ", ".join([str(l) for l in qlabels + clabels])
-            if instruction.condition is None or skip_condition:
-                _log.debug(f"Visiting instruction '{instruction.name}' ({labels})")
+            if isinstance(instruction.condition[0], Clbit):
+                bit_label = self._clbit_labels.get(instruction.condition[0])
+                conditions = [pyqir.result(self._module.context, bit_label)]
+            else:
+                conditions = [
+                    pyqir.result(self._module.context, self._clbit_labels.get(bit))
+                    for bit in instruction.condition[0]
+                ]
 
-            if instruction.condition is not None and skip_condition is False:
-                _log.debug(
-                    f"Visiting condition for instruction '{instruction.name}' ({labels})"
+            # Convert value into a bitstring of the same length as classical register
+            # condition should be a
+            # - tuple (ClassicalRegister, int)
+            # - tuple (Clbit, bool)
+            # - tuple (Clbit, int)
+            if isinstance(instruction.condition[0], Clbit):
+                bit: Clbit = instruction.condition[0]
+                value: Union[int, bool] = instruction.condition[1]
+                if value:
+                    values = "1"
+                else:
+                    values = "0"
+            else:
+                register: ClassicalRegister = instruction.condition[0]
+                value: int = instruction.condition[1]
+                values = format(value, f"0{register.size}b")
+
+            # Add branches recursively for each bit in the bitstring
+            def __visit():
+                self.visit_instruction(instruction, qargs, cargs, skip_condition=True)
+
+            def _branch(conditions_values):
+                try:
+                    cond, val = next(conditions_values)
+
+                    def __branch():
+                        qis.if_result(
+                            self._builder,
+                            cond,
+                            one=_branch(conditions_values) if val == "1" else None,
+                            zero=_branch(conditions_values) if val == "0" else None,
+                        )
+
+                except StopIteration:
+                    return __visit
+                else:
+                    return __branch
+
+            if len(conditions) < len(values):
+                raise ValueError(
+                    f"Value {value} is larger than register width {len(conditions)}."
                 )
 
-                if isinstance(instruction.condition[0], Clbit):
-                    bit_label = self._clbit_labels.get(instruction.condition[0])
-                    conditions = [pyqir.result(self._module.context, bit_label)]
-                else:
-                    conditions = [
-                        pyqir.result(self._module.context, self._clbit_labels.get(bit))
-                        for bit in instruction.condition[0]
-                    ]
-
-                # Convert value into a bitstring of the same length as classical register
-                # condition should be a
-                # - tuple (ClassicalRegister, int)
-                # - tuple (Clbit, bool)
-                # - tuple (Clbit, int)
-                if isinstance(instruction.condition[0], Clbit):
-                    bit: Clbit = instruction.condition[0]
-                    value: Union[int, bool] = instruction.condition[1]
-                    if value:
-                        values = "1"
-                    else:
-                        values = "0"
-                else:
-                    register: ClassicalRegister = instruction.condition[0]
-                    value: int = instruction.condition[1]
-                    values = format(value, f"0{register.size}b")
-
-                # Add branches recursively for each bit in the bitstring
-                def __visit():
-                    self.visit_instruction(instruction, qargs, cargs, skip_condition=True)
-
-                def _branch(conditions_values):
-                    try:
-                        cond, val = next(conditions_values)
-
-                        def __branch():
-                            qis.if_result(
-                                self._builder,
-                                cond,
-                                one=_branch(conditions_values) if val == "1" else None,
-                                zero=_branch(conditions_values) if val == "0" else None,
-                            )
-
-                    except StopIteration:
-                        return __visit
-                    else:
-                        return __branch
-
-                if len(conditions) < len(values):
-                    raise ValueError(
-                        f"Value {value} is larger than register width {len(conditions)}."
-                    )
-
-                # qiskit has the most significant bit on the right, so we
-                # must reverse the bit array for comparisons.
-                _branch(zip(conditions, values[::-1]))()
+            # qiskit has the most significant bit on the right, so we
+            # must reverse the bit array for comparisons.
+            _branch(zip(conditions, values[::-1]))()
         elif (
             "measure" == instruction.name
             or "m" == instruction.name
