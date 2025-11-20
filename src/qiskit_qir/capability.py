@@ -2,11 +2,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from enum import Flag, auto
 import os
+from enum import Flag, auto
 from typing import Dict, List, Union
+
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import Qubit, Clbit
+from qiskit.circuit import Clbit, Qubit
 from qiskit.circuit.instruction import Instruction
 
 
@@ -45,7 +46,7 @@ class CapabilityError(Exception):
         gate_params = ",".join(["param(%s)" % bit_labels[c] for c in cargs])
         qubit_params = ",".join(["%s" % bit_labels[q] for q in qargs])
         instruction_name = instruction.name
-        if instruction.condition is not None:
+        if hasattr(instruction, "condition") and instruction.condition is not None:
             # condition should be a
             # - tuple (ClassicalRegister, int)
             # - tuple (Clbit, bool)

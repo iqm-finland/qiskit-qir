@@ -2,12 +2,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from typing import List, Optional, Union
-from pyqir import Module, Context
-from qiskit import ClassicalRegister, QuantumRegister
-from qiskit.circuit.bit import Bit
-from qiskit.circuit.quantumcircuit import QuantumCircuit, Instruction
 from abc import ABCMeta, abstractmethod
+from typing import List, Optional, Union
+
+from pyqir import Context, Module
+from qiskit import ClassicalRegister, QuantumRegister
+from qiskit.circuit import Clbit, Qubit
+from qiskit.circuit.quantumcircuit import Instruction, QuantumCircuit
 
 
 class _QuantumCircuitElement(metaclass=ABCMeta):
@@ -29,7 +30,9 @@ class _Register(_QuantumCircuitElement):
 
 
 class _Instruction(_QuantumCircuitElement):
-    def __init__(self, instruction: Instruction, qargs: List[Bit], cargs: List[Bit]):
+    def __init__(
+        self, instruction: Instruction, qargs: List[Qubit], cargs: List[Clbit]
+    ):
         self._instruction: Instruction = instruction
         self._qargs = qargs
         self._cargs = cargs
@@ -90,7 +93,10 @@ class QiskitModule:
         elements.extend(_Register.from_element_list(circuit.cregs))
 
         # Instructions
-        for instruction, qargs, cargs in circuit._data:
+        for op in circuit._data:
+            instruction = op.operation
+            qargs = op.qubits
+            cargs = op.clbits
             elements.append(_Instruction(instruction, qargs, cargs))
 
         if module is None:

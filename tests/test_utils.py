@@ -4,7 +4,8 @@
 ##
 
 from typing import List
-from pyqir import is_entry_point, Context, Module, Function
+
+from pyqir import Context, Function, Module, is_entry_point
 
 
 def _qubit_string(qubit: int) -> str:
@@ -40,7 +41,10 @@ def double_op_call_string(name: str, qb1: int, qb2: int) -> str:
 def rotation_call_string(name: str, theta: float, qb: int) -> str:
     return f"call void @__quantum__qis__{name}__body(double {theta:#e}, {_qubit_string(qb)})"
 
-def multiparameter_rotation_call_string(name: str, theta: float, phi: float, qb: int) -> str:
+
+def multiparameter_rotation_call_string(
+    name: str, theta: float, phi: float, qb: int
+) -> str:
     return f"call void @__quantum__qis__{name}__body(double {theta:#e}, double {phi:#e}, {_qubit_string(qb)})"
 
 

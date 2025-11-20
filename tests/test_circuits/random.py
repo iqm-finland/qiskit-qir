@@ -3,17 +3,22 @@
 # Licensed under the MIT License.
 ##
 import pytest
-
 from qiskit import transpile
 from qiskit.circuit.random import random_circuit
-from qiskit_qir.visitor import SUPPORTED_INSTRUCTIONS
+
+from qiskit_qir.visitor import SUPPORTED_INSTRUCTIONS, _NON_BASIS_GATES
 
 
 def _generate_random_fixture(num_qubits, depth):
     @pytest.fixture()
     def random():
         circuit = random_circuit(num_qubits, depth, measure=True)
-        return transpile(circuit, basis_gates=SUPPORTED_INSTRUCTIONS)
+        return transpile(
+            circuit,
+            basis_gates=[
+                g for g in SUPPORTED_INSTRUCTIONS if g not in _NON_BASIS_GATES
+            ],
+        )
 
     return random
 

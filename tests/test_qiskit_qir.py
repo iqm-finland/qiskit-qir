@@ -2,28 +2,27 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
+import logging
 from datetime import datetime
 from pathlib import Path
+
 import pytest
-import logging
+import test_utils
+from test_circuits import core_tests, noop_tests
+from test_circuits.basic_gates import (
+    adj_op_tests,
+    double_op_tests,
+    measurement_tests,
+    r_test,
+    rotation_tests,
+    single_op_tests,
+    triple_op_tests,
+)
+from test_circuits.control_flow_circuits import cf_fixtures
 
 from qiskit_qir.elements import QiskitModule
-from qiskit_qir.visitor import BasicQisVisitor
 from qiskit_qir.translate import to_qir_module
-
-from test_circuits import core_tests, noop_tests
-from test_circuits.control_flow_circuits import cf_fixtures
-from test_circuits.basic_gates import (
-    single_op_tests,
-    adj_op_tests,
-    rotation_tests,
-    r_test,
-    double_op_tests,
-    triple_op_tests,
-    measurement_tests,
-)
-
-import test_utils
+from qiskit_qir.visitor import BasicQisVisitor
 
 _log = logging.getLogger(__name__)
 _test_output_dir = Path(f"test_output.{datetime.now().strftime('%Y%m%d_%H%M')}")
@@ -120,6 +119,7 @@ def test_rotation_gates(circuit_name, request):
     assert func[2] == test_utils.return_string()
     assert len(func) == 3
 
+
 @pytest.mark.parametrize("circuit_name", r_test)
 def test_r_gate(circuit_name, request):
     qir_op, circuit = request.getfixturevalue(circuit_name)
@@ -127,7 +127,9 @@ def test_r_gate(circuit_name, request):
     test_utils.check_attributes(generated_qir, 1, 0)
     func = test_utils.get_entry_point_body(generated_qir)
     assert func[0] == test_utils.initialize_call_string()
-    assert func[1] == test_utils.multiparameter_rotation_call_string(qir_op, 0.5, 0.5, 0)
+    assert func[1] == test_utils.multiparameter_rotation_call_string(
+        qir_op, 0.5, 0.5, 0
+    )
     assert func[2] == test_utils.return_string()
     assert len(func) == 3
 

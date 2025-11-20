@@ -2,10 +2,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 ##
-from qiskit_qir.translate import to_qir_module
+import test_utils
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 
-import test_utils
+from qiskit_qir.translate import to_qir_module
 
 
 def test_single_array():
@@ -66,94 +66,6 @@ def test_no_measure_with_register():
     assert func[3] == test_utils.result_record_output_string(0)
     assert func[4] == test_utils.return_string()
     assert len(func) == 5
-
-
-def test_branching_on_bit_emits_correct_ir():
-    qr = QuantumRegister(1, "qreg")
-    cr = ClassicalRegister(1, "creg")
-    circuit = QuantumCircuit(qr, cr, name="branching_on_bit_emits_correct_ir")
-    circuit.x(0)
-    circuit.measure(0, 0)
-    circuit.x(0).c_if(cr[0], 1)
-
-    ir = str(to_qir_module(circuit)[0])
-    generated_qir = ir.splitlines()
-
-    test_utils.check_attributes(generated_qir, 1, 1)
-    func = test_utils.get_entry_point_body(generated_qir)
-
-    assert func[0] == test_utils.initialize_call_string()
-    assert func[1] == test_utils.single_op_call_string("x", 0)
-    assert func[2] == test_utils.measure_call_string("mz", 0, 0)
-    assert func[3] == test_utils.equal("0", 0)
-    assert func[4] == f"br i1 %0, label %then, label %else"
-    assert func[5] == ""
-    assert (
-        func[6] == f"then:                                             ; preds = %entry"
-    )
-    assert func[7] == test_utils.single_op_call_string("x", 0)
-    assert func[8] == f"br label %continue"
-    assert func[9] == ""
-    assert (
-        func[10]
-        == f"else:                                             ; preds = %entry"
-    )
-    assert func[11] == f"br label %continue"
-    assert func[12] == ""
-    assert (
-        func[13]
-        == f"continue:                                         ; preds = %else, %then"
-    )
-    assert func[14] == test_utils.array_record_output_string(1)
-    assert func[15] == test_utils.result_record_output_string(0)
-    assert func[16] == test_utils.return_string()
-
-    assert len(func) == 17
-
-
-def test_branching_on_register_with_one_bit_emits_correct_ir():
-    qr = QuantumRegister(1, "qreg")
-    cr = ClassicalRegister(1, "creg")
-    circuit = QuantumCircuit(
-        qr, cr, name="branching_on_register_with_one_bit_emits_correct_ir"
-    )
-    circuit.x(0)
-    circuit.measure(0, 0)
-    circuit.x(0).c_if(cr, 1)
-
-    ir = str(to_qir_module(circuit)[0])
-    generated_qir = ir.splitlines()
-
-    test_utils.check_attributes(generated_qir, 1, 1)
-    func = test_utils.get_entry_point_body(generated_qir)
-
-    assert func[0] == test_utils.initialize_call_string()
-    assert func[1] == test_utils.single_op_call_string("x", 0)
-    assert func[2] == test_utils.measure_call_string("mz", 0, 0)
-    assert func[3] == test_utils.equal("0", 0)
-    assert func[4] == f"br i1 %0, label %then, label %else"
-    assert func[5] == ""
-    assert (
-        func[6] == f"then:                                             ; preds = %entry"
-    )
-    assert func[7] == test_utils.single_op_call_string("x", 0)
-    assert func[8] == f"br label %continue"
-    assert func[9] == ""
-    assert (
-        func[10]
-        == f"else:                                             ; preds = %entry"
-    )
-    assert func[11] == f"br label %continue"
-    assert func[12] == ""
-    assert (
-        func[13]
-        == f"continue:                                         ; preds = %else, %then"
-    )
-    assert func[14] == test_utils.array_record_output_string(1)
-    assert func[15] == test_utils.result_record_output_string(0)
-    assert func[16] == test_utils.return_string()
-
-    assert len(func) == 17
 
 
 def test_no_measure_without_registers():
