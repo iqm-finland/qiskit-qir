@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.9.1
+## Version 0.10.0
 - Add Python 3.14 support
 - Update package metadata
 
