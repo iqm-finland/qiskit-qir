@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.10.0
+- Add Python 3.14 support
+- Update package metadata
+
 ## Version 0.9.0
 - Update package to support `qiskit~=2.0`.
 - Remove support for conditionally controlled gates as they are not part of the [QIR Base profile](https://github.com/qir-alliance/qir-spec/blob/main/specification/profiles/Base_Profile.md).

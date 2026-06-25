@@ -341,10 +341,8 @@ class BasicQisVisitor(QuantumCircuitElementVisitor):
                 )
                 self.process_composite_instruction(instruction, qargs, cargs)
             else:
-                raise ValueError(
-                    f"Gate {instruction.name} is not supported. \
-    Please transpile using the list of supported gates: {_SUPPORTED_INSTRUCTIONS}."
-                )
+                raise ValueError(f"Gate {instruction.name} is not supported. \
+    Please transpile using the list of supported gates: {_SUPPORTED_INSTRUCTIONS}.")
 
     def ir(self) -> str:
         return str(self._module)
